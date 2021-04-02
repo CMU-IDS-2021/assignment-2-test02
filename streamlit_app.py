@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import altair as alt
+from vega_datasets import data
 
 st.title("Let's analyze some COVID Data!")
 
@@ -27,9 +28,7 @@ df_covid = load_data(covid_url)
 
 df_jobs = load_data(jobs_url)
 
-st.write("Let's look at raw data in the Pandas Data Frame.")
-
-st.write("COVID, state, daily")
+st.write("# COVID cases per state, daily")
 
 st.write(df_covid)
 
@@ -51,7 +50,7 @@ covid_chart = alt.Chart(df_covid_pa).mark_line().encode(
 
 st.write(covid_chart)
 
-st.write("Employment, state, daily")
+st.write("# Employment per state, daily")
 
 st.write(df_jobs)
 
@@ -70,6 +69,61 @@ jobs_chart = alt.Chart(df_jobs_pa).mark_line().encode(
 ).interactive()
 
 st.write(jobs_chart)
+
+"""# Employment per county, daily, shown in the US for one day"""
+
+# employment, county, daily
+county_url = "https://github.com/OpportunityInsights/EconomicTracker/blob/main/data/Employment%20-%20County%20-%20Daily.csv?raw=true"
+
+df_county = load_data(county_url)
+
+"""Daily employment data by county"""
+
+YEAR = 2020
+MONTH = 5
+DAY = 14
+
+df_county = df_county[df_county['year'] == YEAR]
+df_county = df_county[df_county['month'] == MONTH]
+df_county = df_county[df_county['day'] == DAY]
+
+st.write(f'Dataset filtered for just the day {MONTH}/{DAY}/{YEAR} (M/D/Y)')
+
+df_county
+
+counties = alt.topo_feature(data.us_10m.url, 'counties')
+
+map = alt.Chart(counties).mark_geoshape().encode(
+    color='emp_combined:Q'
+).transform_lookup(
+    lookup='id',
+    from_=alt.LookupData(df_county, 'countyfips', ['emp_combined'])
+).project(
+    type='albersUsa'
+).properties(
+    width=500,
+    height=300,
+    title="Employment level for all workers in the US per county for 5/14/2020"
+)
+
+st.write(map)
+
+# counties = alt.topo_feature(data.us_10m.url, 'counties')
+# DATA_CTY = data.unemployment.url
+
+# map = alt.Chart(counties).mark_geoshape().encode(
+#     color='rate:Q'
+# ).transform_lookup(
+#     lookup='id',
+#     from_=alt.LookupData(DATA_CTY, 'id', ['rate'])
+# ).project(
+#     type='albersUsa'
+# ).properties(
+#     width=500,
+#     height=300
+# )
+
+# st.write(map)
 
 """Data key: https://github.com/OpportunityInsights/EconomicTracker/blob/main/docs/oi_tracker_data_dictionary.md"""
 
