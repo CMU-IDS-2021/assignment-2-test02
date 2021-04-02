@@ -12,7 +12,6 @@ def load_data(url):
 # Filter by PA state only, and add `date` column in date-time for altair
 def clean(df):
     PA_FIPS = 42
-    # syntax: https://cmdlinetips.com/2018/02/how-to-subset-pandas-dataframe-based-on-values-of-a-column/
     df_pa = df[df['statefips'] == PA_FIPS]
     cols = ['year', 'month', 'day']
     df_pa['date'] = pd.to_datetime(df_pa[cols].apply(lambda row: '-'.join(row.values.astype(str)), axis=1))
@@ -108,23 +107,6 @@ map = alt.Chart(counties).mark_geoshape().encode(
 
 st.write(map)
 
-# counties = alt.topo_feature(data.us_10m.url, 'counties')
-# DATA_CTY = data.unemployment.url
-
-# map = alt.Chart(counties).mark_geoshape().encode(
-#     color='rate:Q'
-# ).transform_lookup(
-#     lookup='id',
-#     from_=alt.LookupData(DATA_CTY, 'id', ['rate'])
-# ).project(
-#     type='albersUsa'
-# ).properties(
-#     width=500,
-#     height=300
-# )
-
-# st.write(map)
-
 """Data key: https://github.com/OpportunityInsights/EconomicTracker/blob/main/docs/oi_tracker_data_dictionary.md"""
 
 """Sources:
@@ -141,11 +123,3 @@ https://tracktherecovery.org/?nosplash=true
 
 https://github.com/OpportunityInsights/EconomicTracker/blob/main/docs/oi_tracker_data_dictionary.md
 """
-
-# chart = alt.Chart(df_covid_pa).mark_point().encode(
-#     x=alt.X("body_mass_g", scale=alt.Scale(zero=False)),
-#     y=alt.Y("flipper_length_mm", scale=alt.Scale(zero=False)),
-#     color=alt.Y("species")
-# ).properties(
-#     width=600, height=400
-# ).interactive()
