@@ -32,6 +32,16 @@ st.title("📚 Reopen schools or restaurants first?! Your attention-grabbing tit
 
 """_In particular, please feel free to explore different columns of the data (e.g. categories of business, or categories of income), as well as swapping out the provided datasets, which can all be found as CSVs on GitHub [here](https://github.com/OpportunityInsights/EconomicTracker)._"""
 
+"""_Suggestions for visualization components to change:_
+
+* _Labels and legends_
+* _Axis/scale ranges & colors (e.g. selectively showing or omitting data)_
+* _Color palettes_
+* _Data processing (e.g. linear scale, log scale)_
+* _Visual representation or marks_
+* _Tooltips_
+"""
+
 """Add your names and team affiliation here."""
 
 #################################################

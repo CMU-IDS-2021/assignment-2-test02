@@ -1,6 +1,6 @@
 # CMU Interactive Data Science, Critique Workshop Starter
 
-* **Team members**: XXXX@andrew.cmu.edu and XXXX@andrew.cmu.edu (Update XXXX with your team's emails)
+* **Team members**: XXXX@andrew.cmu.edu, ..., and XXXX@andrew.cmu.edu (Update XXXX with your team's emails)
 * **Online URL**: https://share.streamlit.io/cmu-ids-2021/YYYY/master/streamlit_app.py (Update YYYY with your repo name)
 
 ## Instructions
@@ -17,5 +17,5 @@ Before you can view your application online, you need to have it set up with Str
 
 ### Deliverables
 
-- [ ] An interactive data science or machine learning application using Streamlit.
+- [ ] An interactive persuasive narrative (incorporating 2-3 visualizations with your changes or annotations) using Streamlit.
 - [ ] The URL at the top of this readme needs to point to your application online. It should also list the names of the team members. 
