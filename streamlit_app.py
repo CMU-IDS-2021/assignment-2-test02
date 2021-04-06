@@ -5,7 +5,7 @@ from vega_datasets import data
 
 @st.cache(suppress_st_warning=True)
 def load_data(url):
-    st.write("Loading data (uncached)", url)
+    # st.write("Loading data (uncached)", url)
     return pd.read_csv(url)
 
 # Filter by PA state only, and add `date` column in date-time for altair
@@ -28,7 +28,7 @@ def clean_edu(df):
 
 st.title("📚 Reopen schools or restaurants first?! Your attention-grabbing title here 🍢")
 
-"""_Feel free to change any of the provided text, the provided charts, and their captions/labels/titles below! Feel free to remove/reorder things to fit your argument as well._"""
+"""_Feel free to change any of the provided text, the provided charts, and their captions/labels/titles below! Feel free to remove/reorder things to fit your argument as well, or add additional assets (images, other datasets, etc)._"""
 
 """_In particular, please feel free to explore different columns of the data (e.g. categories of business, or categories of income), as well as swapping out the provided datasets, which can all be found as CSVs on GitHub [here](https://github.com/OpportunityInsights/EconomicTracker)._"""
 
