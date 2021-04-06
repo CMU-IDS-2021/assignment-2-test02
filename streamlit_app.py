@@ -31,20 +31,29 @@ st.title("📚 Reopen schools or restaurants first?! Your attention-grabbing tit
 # Covid, state, daily
 covid_url = "https://github.com/OpportunityInsights/EconomicTracker/blob/main/data/COVID%20-%20State%20-%20Daily.csv?raw=true"
 
-# employment, state, daily
-jobs_url = "https://github.com/OpportunityInsights/EconomicTracker/blob/main/data/Employment%20-%20State%20-%20Daily.csv?raw=true"
-
 df_covid = load_data(covid_url)
-
-df_jobs = load_data(jobs_url)
+df_covid_pa = clean(df_covid)
 
 st.write("# COVID cases per state, daily")
 
-df_covid_pa = clean(df_covid)
+df_covid_pa_t = df_covid_pa.reset_index().melt('date')
+
+"""Transposed"""
+
+df_covid_pa_t
 
 covid_chart = alt.Chart(df_covid_pa).mark_line().encode(
     x=alt.X('date:T', axis=alt.Axis(title='Date')),
     y=alt.Y('new_case_count:Q', axis=alt.Axis(title='New case count')),
+).properties(
+    width=600, height=400,
+    title="Number of new cases in PA over time (Feb 2020-Mar 2021)"
+)
+
+covid_chart_2 = alt.Chart(df_covid_pa_t).mark_line().encode(
+    x=alt.X('date:T', axis=alt.Axis(title='Date')),
+    y=alt.Y('value:Q', axis=alt.Axis(title='# cases')),
+    color='variable:N'
 ).properties(
     width=600, height=400,
     title="Number of new cases in PA over time (Feb 2020-Mar 2021)"
@@ -56,6 +65,8 @@ covid_chart = alt.Chart(df_covid_pa).mark_line().encode(
 
 st.write(covid_chart)
 
+st.write(covid_chart_2)
+
 """Add your framing here."""
 
 if st.checkbox("Show PA COVID data"):
@@ -65,9 +76,13 @@ if st.checkbox("Show PA COVID data"):
 
 st.write("# Employment per state, daily over time")
 
-"""One sample employment vis for PA only:"""
+# employment, state, daily
+jobs_url = "https://github.com/OpportunityInsights/EconomicTracker/blob/main/data/Employment%20-%20State%20-%20Daily.csv?raw=true"
 
+df_jobs = load_data(jobs_url)
 df_jobs_pa = clean(df_jobs)
+
+"""Your framing here."""
 
 jobs_chart = alt.Chart(df_jobs_pa).mark_line().encode(
     x=alt.X('date:T', axis=alt.Axis(title='Date')),
@@ -78,6 +93,8 @@ jobs_chart = alt.Chart(df_jobs_pa).mark_line().encode(
 ).interactive()
 
 st.write(jobs_chart)
+
+"""Your framing here."""
 
 if st.checkbox("Show PA jobs data"):
     st.write(df_jobs_pa)
@@ -96,8 +113,6 @@ counties_metadata = load_data(county_metadata_url)
 
 df_counties_us = df_counties_us.join(counties_metadata.set_index('countyfips'), on='countyfips')
 
-"""Daily employment data by county"""
-
 YEAR = 2021
 MONTH = 2
 DAY = 5
@@ -108,8 +123,10 @@ df_counties_us = df_counties_us[df_counties_us['day'] == DAY]
 
 counties = alt.topo_feature(data.us_10m.url, 'counties')
 
+"""Your framing here."""
+
 us_employment_map = alt.Chart(counties).mark_geoshape().encode(
-    color=alt.Color('emp_combined:Q', legend=alt.Legend(title="Combined employment", format=".0%"))
+    color=alt.Color('emp_combined:Q', legend=alt.Legend(title="Combined employment", format=".0%"), scale=alt.Scale(domainMid=0))
 ).transform_lookup(
     lookup='id',
     from_=alt.LookupData(df_counties_us, 'countyfips', ['emp_combined'])
@@ -123,20 +140,22 @@ us_employment_map = alt.Chart(counties).mark_geoshape().encode(
 
 st.write(us_employment_map)
 
+"""Your framing here."""
+
 if st.checkbox("Show US county employment data"):
     st.write(f'Dataset filtered for just the day {MONTH}/{DAY}/{YEAR} (M/D/Y) in the U.S.')
     df_counties_us
 
-"""Counties in PA"""
+"""## Counties in PA."""
 
-# hover = alt.selection(type='single', on='mouseover', nearest=True, fields=['countyname', 'county_pop2019'])
+"""Your framing here."""
 
 hover = alt.selection_single(fields=['countyname'])
 
 df_counties_pa = df_counties_us[df_counties_us['statename'] == "Pennsylvania"]
 
 pa_employment_map = alt.Chart(counties).mark_geoshape().encode(
-    color=alt.Color('emp_combined:Q', legend=alt.Legend(title="Combined employment", format=".0%"))
+    color=alt.Color('emp_combined:Q', legend=alt.Legend(title="Combined employment", format=".0%"), scale=alt.Scale(domainMid=0))
 ).transform_lookup(
     lookup='id',
     from_=alt.LookupData(df_counties_pa, 'countyfips', ['emp_combined', 'countyname'])
@@ -151,6 +170,8 @@ pa_employment_map = alt.Chart(counties).mark_geoshape().encode(
 )
 
 st.write(pa_employment_map)
+
+"""Your framing here."""
 
 if st.checkbox("Show county metadata (used for filtering counties by state)"):
     counties_metadata
