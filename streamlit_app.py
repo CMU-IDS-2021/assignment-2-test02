@@ -3,7 +3,6 @@ import pandas as pd
 import altair as alt
 from vega_datasets import data
 
-# TODO add caching so we load the data only once w/ [at]st.cache
 @st.cache(suppress_st_warning=True)
 def load_data(url):
     st.write("Loading data (uncached)", url)
@@ -17,16 +16,31 @@ def clean(df):
     df_pa['date'] = pd.to_datetime(df_pa[cols].apply(lambda row: '-'.join(row.values.astype(str)), axis=1))
     return df_pa
 
-#########################
+# 'day' column is now 'day_endofweek'
+def clean_edu(df):
+    PA_FIPS = 42
+    df_pa = df[df['statefips'] == PA_FIPS]
+    cols = ['year', 'month', 'day_endofweek']
+    df_pa['date'] = pd.to_datetime(df_pa[cols].apply(lambda row: '-'.join(row.values.astype(str)), axis=1))
+    return df_pa
+
+#################################################
 
 st.title("📚 Reopen schools or restaurants first?! Your attention-grabbing title here 🍢")
 
 """_Feel free to change any of the provided text, the provided charts, and their captions/labels/titles below! Feel free to remove/reorder things to fit your argument as well._"""
 
+"""_In particular, please feel free to explore different columns of the data (e.g. categories of business, or categories of income), as well as swapping out the provided datasets, which can all be found as CSVs on GitHub [here](https://github.com/OpportunityInsights/EconomicTracker)._"""
 
 """Add your names and team affiliation here."""
 
+#################################################
+
+"""# Introduction"""
+
 """Add your persuasive introduction here."""
+
+#################################################
 
 # Covid, state, daily
 covid_url = "https://github.com/OpportunityInsights/EconomicTracker/blob/main/data/COVID%20-%20State%20-%20Daily.csv?raw=true"
@@ -36,24 +50,9 @@ df_covid_pa = clean(df_covid)
 
 st.write("# COVID cases per state, daily")
 
-df_covid_pa_t = df_covid_pa.reset_index().melt('date')
-
-"""Transposed"""
-
-df_covid_pa_t
-
 covid_chart = alt.Chart(df_covid_pa).mark_line().encode(
     x=alt.X('date:T', axis=alt.Axis(title='Date')),
     y=alt.Y('new_case_count:Q', axis=alt.Axis(title='New case count')),
-).properties(
-    width=600, height=400,
-    title="Number of new cases in PA over time (Feb 2020-Mar 2021)"
-)
-
-covid_chart_2 = alt.Chart(df_covid_pa_t).mark_line().encode(
-    x=alt.X('date:T', axis=alt.Axis(title='Date')),
-    y=alt.Y('value:Q', axis=alt.Axis(title='# cases')),
-    color='variable:N'
 ).properties(
     width=600, height=400,
     title="Number of new cases in PA over time (Feb 2020-Mar 2021)"
@@ -65,8 +64,6 @@ covid_chart_2 = alt.Chart(df_covid_pa_t).mark_line().encode(
 
 st.write(covid_chart)
 
-st.write(covid_chart_2)
-
 """Add your framing here."""
 
 if st.checkbox("Show PA COVID data"):
@@ -74,52 +71,87 @@ if st.checkbox("Show PA COVID data"):
 
 #################################################
 
-st.write("# Employment per state, daily over time")
+"""# Percent change in student participation"""
 
-# employment, state, daily
-jobs_url = "https://github.com/OpportunityInsights/EconomicTracker/blob/main/data/Employment%20-%20State%20-%20Daily.csv?raw=true"
+# education, state, daily
+edu_url = "https://raw.githubusercontent.com/OpportunityInsights/EconomicTracker/main/data/Zearn%20-%20State%20-%20Weekly.csv"
 
-df_jobs = load_data(jobs_url)
-df_jobs_pa = clean(df_jobs)
+df_edu = load_data(edu_url)
+df_edu_pa = clean_edu(df_edu)
 
-"""Your framing here."""
+"""Your framing here.""" 
 
-jobs_chart = alt.Chart(df_jobs_pa).mark_line().encode(
+"""This shows changes in total student participation in online math coursework in Pennsylvania."""
+
+edu_chart = alt.Chart(df_edu_pa).mark_line().encode(
     x=alt.X('date:T', axis=alt.Axis(title='Date')),
-    y=alt.Y('emp_combined:Q', axis=alt.Axis(title='Combined employment'))
+    y=alt.Y('engagement:Q', axis=alt.Axis(title='Engagement', format=".0%"))
 ).properties(
     width=600, height=400,
-    title="Employment level for all workers in PA over time (Feb 2020-Mar 2021)"
+    title="PA engagement in online math over time relative to Jan."
 ).interactive()
 
-st.write(jobs_chart)
+st.write(edu_chart)
+
+"""'Engagement' indicates the average level of students using platform relative to January 6-February 21 2020."""
 
 """Your framing here."""
 
-if st.checkbox("Show PA jobs data"):
-    st.write(df_jobs_pa)
+if st.checkbox("Show PA edu data"):
+    st.write(df_edu_pa)
+
+#################################################
+
+st.write("# Small business revenue per state, daily over time")
+
+revenue_url = "https://raw.githubusercontent.com/OpportunityInsights/EconomicTracker/main/data/Womply%20-%20State%20-%20Daily.csv"
+
+df_revenue = load_data(revenue_url)
+df_revenue_pa = clean(df_revenue)
+
+"""Your framing here. Feel free to visualize the effects on different sectors."""
+
+revenue_chart = alt.Chart(df_revenue_pa).mark_line().encode(
+    x=alt.X('date:T', axis=alt.Axis(title='Date')),
+    y=alt.Y('revenue_all:Q', axis=alt.Axis(title='Revenue', format=".0%"))
+).properties(
+    width=600, height=400,
+    title="Combined revenue changes in PA relative to Jan"
+).interactive()
+
+st.write(revenue_chart)
+
+"""Revenue indicates the percent change in net revenue for small businesses, calculated as a seven-day moving average, seasonally adjusted, and indexed to January 4-31 2020."""
+
+"""Your framing here."""
+
+if st.checkbox("Show PA revenue data"):
+    st.write(df_revenue_pa)
 
 #################################################
 
 """# Percent change in employment since January for Feb 2, 2021"""
 
+"""**Feel free to substitute this geo-dataset out for, e.g. datasets on education or small business revenue. You will just have to use the datasets labeled "County."**"""
+
 # employment, county, daily
-county_url = "https://github.com/OpportunityInsights/EconomicTracker/blob/main/data/Employment%20-%20County%20-%20Daily.csv?raw=true"
+country_emp_url = "https://github.com/OpportunityInsights/EconomicTracker/blob/main/data/Employment%20-%20County%20-%20Daily.csv?raw=true"
 
 county_metadata_url = "https://raw.githubusercontent.com/OpportunityInsights/EconomicTracker/main/data/GeoIDs%20-%20County.csv"
 
-df_counties_us = load_data(county_url)
+df_counties_emp_us = load_data(country_emp_url)
 counties_metadata = load_data(county_metadata_url)
 
-df_counties_us = df_counties_us.join(counties_metadata.set_index('countyfips'), on='countyfips')
+df_counties_emp_us = df_counties_emp_us.join(counties_metadata.set_index('countyfips'), on='countyfips')
 
+# Filter dataset to the same day as shown on the Track the Recovery site
 YEAR = 2021
 MONTH = 2
 DAY = 5
 
-df_counties_us = df_counties_us[df_counties_us['year'] == YEAR]
-df_counties_us = df_counties_us[df_counties_us['month'] == MONTH]
-df_counties_us = df_counties_us[df_counties_us['day'] == DAY]
+df_counties_emp_us = df_counties_emp_us[df_counties_emp_us['year'] == YEAR]
+df_counties_emp_us = df_counties_emp_us[df_counties_emp_us['month'] == MONTH]
+df_counties_emp_us = df_counties_emp_us[df_counties_emp_us['day'] == DAY]
 
 counties = alt.topo_feature(data.us_10m.url, 'counties')
 
@@ -129,7 +161,7 @@ us_employment_map = alt.Chart(counties).mark_geoshape().encode(
     color=alt.Color('emp_combined:Q', legend=alt.Legend(title="Combined employment", format=".0%"), scale=alt.Scale(domainMid=0))
 ).transform_lookup(
     lookup='id',
-    from_=alt.LookupData(df_counties_us, 'countyfips', ['emp_combined'])
+    from_=alt.LookupData(df_counties_emp_us, 'countyfips', ['emp_combined'])
 ).project(
     type='albersUsa'
 ).properties(
@@ -140,25 +172,26 @@ us_employment_map = alt.Chart(counties).mark_geoshape().encode(
 
 st.write(us_employment_map)
 
+"""'Combined employment' indicates employment level for all workers, across income quartiles and professions."""
+
 """Your framing here."""
 
 if st.checkbox("Show US county employment data"):
     st.write(f'Dataset filtered for just the day {MONTH}/{DAY}/{YEAR} (M/D/Y) in the U.S.')
-    df_counties_us
+    df_counties_emp_us
 
-"""## Counties in PA."""
+"""## Change in employment in counties in PA."""
 
 """Your framing here."""
 
-hover = alt.selection_single(fields=['countyname'])
-
-df_counties_pa = df_counties_us[df_counties_us['statename'] == "Pennsylvania"]
+# Filter dataset to PA only
+df_counties_emp_pa = df_counties_emp_us[df_counties_emp_us['statename'] == "Pennsylvania"]
 
 pa_employment_map = alt.Chart(counties).mark_geoshape().encode(
     color=alt.Color('emp_combined:Q', legend=alt.Legend(title="Combined employment", format=".0%"), scale=alt.Scale(domainMid=0))
 ).transform_lookup(
     lookup='id',
-    from_=alt.LookupData(df_counties_pa, 'countyfips', ['emp_combined', 'countyname'])
+    from_=alt.LookupData(df_counties_emp_pa, 'countyfips', ['emp_combined', 'countyname'])
 ).project(
     type='albersUsa'
 ).properties(
@@ -171,13 +204,23 @@ pa_employment_map = alt.Chart(counties).mark_geoshape().encode(
 
 st.write(pa_employment_map)
 
+"""'Combined employment' indicates employment level for all workers, across income quartiles and professions."""
+
 """Your framing here."""
 
 if st.checkbox("Show county metadata (used for filtering counties by state)"):
     counties_metadata
 
 if st.checkbox("Show PA county employment data"):
-    df_counties_pa
+    df_counties_emp_pa
+
+#################################################
+
+"""# Conclusion"""
+
+"""Add your persuasive conclusion here."""
+
+#################################################
 
 """# Sources
  
