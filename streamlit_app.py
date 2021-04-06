@@ -3,8 +3,6 @@ import pandas as pd
 import altair as alt
 from vega_datasets import data
 
-st.title("Let's analyze some COVID Data!")
-
 # TODO add caching so we load the data only once w/ [at]st.cache
 @st.cache(suppress_st_warning=True)
 def load_data(url):
@@ -19,6 +17,17 @@ def clean(df):
     df_pa['date'] = pd.to_datetime(df_pa[cols].apply(lambda row: '-'.join(row.values.astype(str)), axis=1))
     return df_pa
 
+#########################
+
+st.title("📚 Reopen schools or restaurants first?! Your attention-grabbing title here 🍢")
+
+"""_Feel free to change any of the provided text, the provided charts, and their captions/labels/titles below! Feel free to remove/reorder things to fit your argument as well._"""
+
+
+"""Add your names and team affiliation here."""
+
+"""Add your persuasive introduction here."""
+
 # Covid, state, daily
 covid_url = "https://github.com/OpportunityInsights/EconomicTracker/blob/main/data/COVID%20-%20State%20-%20Daily.csv?raw=true"
 
@@ -31,35 +40,38 @@ df_jobs = load_data(jobs_url)
 
 st.write("# COVID cases per state, daily")
 
-"""One sample COVID vis for PA only: (PA state FIPS is 42)"""
-
 df_covid_pa = clean(df_covid)
 
-st.write(df_covid_pa)
-
 covid_chart = alt.Chart(df_covid_pa).mark_line().encode(
-    x='date:T',
-    y='new_case_count:Q',
+    x=alt.X('date:T', axis=alt.Axis(title='Date')),
+    y=alt.Y('new_case_count:Q', axis=alt.Axis(title='New case count')),
 ).properties(
     width=600, height=400,
     title="Number of new cases in PA over time (Feb 2020-Mar 2021)"
-).interactive()
+)
 
-"""(New confirmed COVID-19 cases, seven day moving average.)"""
+"""Add your framing here."""
+
+"""Here is a sample COVID visualization for PA only, showing the new confirmed COVID-19 cases over time (seven day moving average)."""
 
 st.write(covid_chart)
 
-st.write("# Employment per state, daily")
+"""Add your framing here."""
+
+if st.checkbox("Show PA COVID data"):
+    st.write(df_covid_pa)
+
+#################################################
+
+st.write("# Employment per state, daily over time")
 
 """One sample employment vis for PA only:"""
 
 df_jobs_pa = clean(df_jobs)
 
-st.write(df_jobs_pa)
-
 jobs_chart = alt.Chart(df_jobs_pa).mark_line().encode(
-    x='date:T',
-    y='emp_combined:Q'
+    x=alt.X('date:T', axis=alt.Axis(title='Date')),
+    y=alt.Y('emp_combined:Q', axis=alt.Axis(title='Combined employment'))
 ).properties(
     width=600, height=400,
     title="Employment level for all workers in PA over time (Feb 2020-Mar 2021)"
@@ -67,40 +79,37 @@ jobs_chart = alt.Chart(df_jobs_pa).mark_line().encode(
 
 st.write(jobs_chart)
 
-"""# Employment per county, daily, shown in the US for one day"""
+if st.checkbox("Show PA jobs data"):
+    st.write(df_jobs_pa)
+
+#################################################
+
+"""# Percent change in employment since January for Feb 2, 2021"""
 
 # employment, county, daily
 county_url = "https://github.com/OpportunityInsights/EconomicTracker/blob/main/data/Employment%20-%20County%20-%20Daily.csv?raw=true"
 
 county_metadata_url = "https://raw.githubusercontent.com/OpportunityInsights/EconomicTracker/main/data/GeoIDs%20-%20County.csv"
 
-"""County metadata (for filtering by city/state)"""
-
 df_counties_us = load_data(county_url)
 counties_metadata = load_data(county_metadata_url)
-
-counties_metadata
 
 df_counties_us = df_counties_us.join(counties_metadata.set_index('countyfips'), on='countyfips')
 
 """Daily employment data by county"""
 
-YEAR = 2020
-MONTH = 5
-DAY = 14
+YEAR = 2021
+MONTH = 2
+DAY = 5
 
 df_counties_us = df_counties_us[df_counties_us['year'] == YEAR]
 df_counties_us = df_counties_us[df_counties_us['month'] == MONTH]
 df_counties_us = df_counties_us[df_counties_us['day'] == DAY]
 
-st.write(f'Dataset filtered for just the day {MONTH}/{DAY}/{YEAR} (M/D/Y) in the U.S.')
-
-df_counties_us
-
 counties = alt.topo_feature(data.us_10m.url, 'counties')
 
 us_employment_map = alt.Chart(counties).mark_geoshape().encode(
-    color='emp_combined:Q'
+    color=alt.Color('emp_combined:Q', legend=alt.Legend(title="Combined employment", format=".0%"))
 ).transform_lookup(
     lookup='id',
     from_=alt.LookupData(df_counties_us, 'countyfips', ['emp_combined'])
@@ -109,45 +118,50 @@ us_employment_map = alt.Chart(counties).mark_geoshape().encode(
 ).properties(
     width=500,
     height=300,
-    title="Employment level for all workers in the US per county for 5/14/2020"
+    title="% change in total employment, relative to Jan. for 2/5/21"
 )
 
 st.write(us_employment_map)
 
-"""Counties filtered to PA"""
+if st.checkbox("Show US county employment data"):
+    st.write(f'Dataset filtered for just the day {MONTH}/{DAY}/{YEAR} (M/D/Y) in the U.S.')
+    df_counties_us
+
+"""Counties in PA"""
+
+# hover = alt.selection(type='single', on='mouseover', nearest=True, fields=['countyname', 'county_pop2019'])
+
+hover = alt.selection_single(fields=['countyname'])
 
 df_counties_pa = df_counties_us[df_counties_us['statename'] == "Pennsylvania"]
 
-df_counties_pa
-
 pa_employment_map = alt.Chart(counties).mark_geoshape().encode(
-    color='emp_combined:Q'
+    color=alt.Color('emp_combined:Q', legend=alt.Legend(title="Combined employment", format=".0%"))
 ).transform_lookup(
     lookup='id',
-    from_=alt.LookupData(df_counties_pa, 'countyfips', ['emp_combined'])
+    from_=alt.LookupData(df_counties_pa, 'countyfips', ['emp_combined', 'countyname'])
 ).project(
     type='albersUsa'
 ).properties(
     width=500,
     height=300,
-    title="Employment level for all workers in PA per county for 5/14/2020"
+    title="% change in total employment, relative to Jan. for 2/5/21"
+).encode(
+    tooltip=[alt.Text('countyname:N', title="County name"), alt.Text('emp_combined:Q', format=".0%", title="Change in total employment")]
 )
 
 st.write(pa_employment_map)
 
-"""Data key: https://github.com/OpportunityInsights/EconomicTracker/blob/main/docs/oi_tracker_data_dictionary.md"""
+if st.checkbox("Show county metadata (used for filtering counties by state)"):
+    counties_metadata
 
-"""Sources:
+if st.checkbox("Show PA county employment data"):
+    df_counties_pa
+
+"""# Sources
  
-https://tracktherecovery.org/
-
-https://opportunityinsights.org/paper/tracker/
-
-https://github.com/OpportunityInsights/EconomicTracker
-
-https://opportunityinsights.org/wp-content/uploads/2020/06/tracker-summary.pdf
-
-https://tracktherecovery.org/?nosplash=true
-
-https://github.com/OpportunityInsights/EconomicTracker/blob/main/docs/oi_tracker_data_dictionary.md
+* [_Track the Recovery_ (TTR) interactive frontend](https://tracktherecovery.org/)
+* [_Track the Recovery_ datasets](https://github.com/OpportunityInsights/EconomicTracker)
+* [_TTR_ data documentation](https://github.com/OpportunityInsights/EconomicTracker/blob/main/docs/oi_tracker_data_documentation.md)
+* [_TTR_ data dictionary](https://github.com/OpportunityInsights/EconomicTracker/blob/main/docs/oi_tracker_data_dictionary.md)
 """
